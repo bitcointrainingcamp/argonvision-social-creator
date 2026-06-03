@@ -6,7 +6,7 @@
 //   Add:  CLAUDE_API_KEY  =  your Anthropic API key
 
 const CLAUDE_API  = 'https://api.anthropic.com/v1/messages';
-const MODEL       = 'claude-haiku-4-5';
+const MODEL       = 'claude-3-5-haiku-20241022';
 const MAX_TOKENS  = 1200;
 
 const SYSTEM_PROMPT = `You are a specialist in attraction marketing content for social media. Your posts create genuine interest and start real conversations — they never promote, sell, or pitch anything.
