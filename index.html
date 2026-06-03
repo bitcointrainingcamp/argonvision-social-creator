@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArgonVision — Attraction Post Generator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f2f5f2;
+  color: #1a1a1a;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+#hdr {
+  background: #104f16;
+  padding: 15px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#hdr-logo {
+  height: 42px;
+  width: auto;
+  flex-shrink: 0;
+}
+#hdr-title { color: white; font-size: 16px; font-weight: 700; display: block; }
+#hdr-sub   { color: rgba(255,255,255,0.65); font-size: 11px; display: block; margin-top: 2px; }
+
+/* ── Layout ── */
+main {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 30px 18px 60px;
+}
+.intro { text-align: center; margin-bottom: 26px; }
+.intro h2 { font-size: 22px; color: #104f16; margin-bottom: 8px; }
+.intro p  { font-size: 13.5px; color: #555; line-height: 1.65; }
+
+/* ── Card ── */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  margin-bottom: 18px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #104f16;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f4f0;
+}
+
+/* ── Fields ── */
+.field { margin-bottom: 16px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 13px; font-weight: 700;
+  color: #333; margin-bottom: 4px;
+}
+.field small {
+  display: block;
+  font-size: 11px; color: #999; margin-bottom: 5px;
+}
+.field input[type="text"] {
+  width: 100%;
+  border: 1.5px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px; font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input[type="text"]:focus { border-color: #104f16; }
+
+/* ── Pexels API key ── */
+#api-connected {
+  display: none; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.api-badge {
+  background: #edfbee; color: #104f16;
+  border: 1.5px solid #c2e8c2; border-radius: 8px;
+  padding: 7px 14px; font-size: 13px; font-weight: 700;
+}
+.link-btn {
+  background: none; border: none; color: #999;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+  text-decoration: underline; padding: 0;
+}
+.link-btn:hover { color: #104f16; }
+#api-input-wrap p { font-size: 13px; color: #555; line-height: 1.65; margin-bottom: 10px; }
+#api-input-wrap a { color: #104f16; }
+.api-row { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; margin-top: 10px; }
+.api-row input {
+  flex: 1; min-width: 180px;
+  border: 1.5px solid #ddd; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px; font-family: inherit;
+  outline: none; transition: border-color 0.15s;
+}
+.api-row input:focus { border-color: #104f16; }
+.btn-save {
+  background: #104f16; color: white;
+  border: none; padding: 10px 20px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+}
+.btn-save:hover { background: #0d4013; }
+#api-error { display: none; margin-top: 8px; color: #c0392b; font-size: 12px; font-weight: 600; }
+
+/* ── Photo upload ── */
+.upload-zone {
+  border: 2px dashed #ccc; border-radius: 12px;
+  padding: 22px 16px; text-align: center; cursor: pointer;
+  transition: border-color 0.14s, background 0.14s;
+  position: relative; overflow: hidden;
+}
+.upload-zone:hover { border-color: #104f16; background: #fafef8; }
+.upload-zone.loaded { padding: 0; border-style: solid; border-color: #104f16; }
+#upload-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px; display: none; }
+.upload-placeholder span { display: block; font-size: 14px; color: #555; margin-bottom: 4px; font-weight: 600; }
+.upload-placeholder small { font-size: 11px; color: #aaa; }
+.upload-clear {
+  display: none; position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,0.55); color: white;
+  border: none; border-radius: 6px; padding: 4px 10px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.upload-zone.loaded .upload-clear    { display: block; }
+.upload-zone.loaded .upload-placeholder { display: none; }
+
+/* ── Platform selector ── */
+.plat-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.plat-label {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border: 1.5px solid #ddd; border-radius: 10px;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  color: #777; transition: all 0.14s; user-select: none;
+}
+.plat-label input { display: none; }
+.plat-label.on { border-color: #104f16; color: #104f16; background: #f0f8f0; }
+.plat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Generate button ── */
+.btn-gen {
+  width: 100%; background: #104f16; color: white;
+  border: none; padding: 15px; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: background 0.14s;
+}
+.btn-gen:hover { background: #0d4013; }
+.btn-gen:disabled { background: #6a9970; cursor: not-allowed; }
+
+/* ── Usage meter ── */
+#usage-meter {
+  text-align: center; margin-top: 12px;
+  font-size: 12px; color: #999;
+}
+#usage-pips { display: inline-flex; gap: 6px; margin-right: 8px; vertical-align: middle; }
+.pip {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ddd; display: inline-block;
+  transition: background 0.2s;
+}
+.pip.used { background: #104f16; }
+.pip.last { background: #e07b00; }
+
+/* ── Rate limit block ── */
+#rate-limit-block {
+  display: none;
+  background: #fffbf0; border: 1.5px solid #f5d87a;
+  border-radius: 12px; padding: 22px 20px;
+  text-align: center; margin-top: 14px;
+}
+#rate-limit-block .rl-icon { font-size: 30px; margin-bottom: 8px; }
+#rate-limit-block h3 { font-size: 16px; color: #7a5500; margin-bottom: 6px; }
+#rate-limit-block p  { font-size: 13px; color: #7a5500; line-height: 1.65; }
+
+/* ── Generating screen ── */
+#gen-screen {
+  display: none;
+  text-align: center;
+  padding: 70px 20px;
+}
+.gen-spinner {
+  width: 52px; height: 52px;
+  border: 4px solid #e0e8e0;
+  border-top-color: #104f16;
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+  margin: 0 auto 24px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.gen-title { font-size: 21px; font-weight: 700; color: #104f16; margin-bottom: 8px; }
+.gen-sub   { font-size: 14px; color: #888; line-height: 1.65; }
+#gen-error {
+  display: none;
+  background: #fff5f5; border: 1.5px solid #f5c6c6;
+  border-radius: 12px; padding: 18px 20px;
+  color: #c0392b; font-size: 14px; line-height: 1.6;
+  text-align: center; margin-top: 18px;
+}
+.btn-retry {
+  background: #104f16; color: white;
+  border: none; padding: 10px 24px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  margin-top: 14px; transition: background 0.14s;
+}
+.btn-retry:hover { background: #0d4013; }
+
+/* ── Results ── */
+#results { display: none; }
+
+.week-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.day-pill {
+  flex: 1; min-width: 80px; padding: 10px 6px;
+  border: 2px solid #e0e8e0; border-radius: 10px;
+  text-align: center; cursor: pointer;
+  font-size: 13px; font-weight: 700;
+  color: #999; transition: all 0.14s; user-select: none;
+}
+.day-pill.on { border-color: #104f16; color: #104f16; background: #f0f8f0; }
+.day-pill small { display: block; font-size: 10px; font-weight: 400; color: #bbb; margin-top: 2px; }
+.day-pill.on small { color: #6aaa6a; }
+
+.day-view { display: none; }
+.day-view.on { display: block; }
+.day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+}
+.day-label { font-size: 20px; font-weight: 700; color: #104f16; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-dl {
+  background: #1fd230; color: #104f16;
+  border: none; padding: 10px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: background 0.14s;
+}
+.btn-dl:hover { background: #18c228; }
+
+.btn-sec {
+  background: white; color: #104f16;
+  border: 1.5px solid #104f16; padding: 10px 20px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all 0.14s;
+}
+.btn-sec:hover { background: #f0f8f0; }
+
+/* ── Image row ── */
+.img-row {
+  display: flex; gap: 18px; align-items: flex-start;
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+canvas {
+  width: 260px; height: 260px; border-radius: 12px; display: block;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.15); flex-shrink: 0;
+}
+.img-meta { flex: 1; min-width: 160px; padding-top: 4px; }
+.img-meta p { font-size: 12px; color: #888; line-height: 1.7; }
+.search-tag {
+  display: inline-block; background: #f0f4f0; color: #555;
+  border-radius: 6px; padding: 3px 9px;
+  font-size: 11px; margin-top: 6px; font-style: italic;
+}
+
+/* ── Platform mini-tabs ── */
+.ptabs { display: flex; border-bottom: 2px solid #f0f4f0; margin-bottom: 14px; }
+.ptab {
+  padding: 8px 18px; font-size: 12px; font-weight: 700;
+  color: #ccc; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color 0.14s; white-space: nowrap;
+}
+.ptab.on { color: #104f16; border-bottom-color: #104f16; }
+
+/* ── Copy ── */
+.copy-wrap { display: none; }
+.copy-wrap.on { display: block; }
+.copy-box { background: #f8faf8; border: 1.5px solid #e0e8e0; border-radius: 12px; padding: 16px; }
+.copy-box pre {
+  white-space: pre-wrap; font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px; line-height: 1.7; color: #1a1a1a; margin-bottom: 12px;
+}
+.btn-copy {
+  background: #104f16; color: white; border: none;
+  padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background 0.14s;
+}
+.btn-copy:hover  { background: #0d4013; }
+.btn-copy.done   { background: #1fd230; color: #104f16; }
+
+/* ── Result footer ── */
+.result-footer { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.btn-back {
+  flex: 1; background: white; color: #104f16;
+  border: 1.5px solid #104f16; padding: 12px 18px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.14s; text-align: center;
+}
+.btn-back:hover { background: #f0f8f0; }
+.btn-regen {
+  flex: 1; background: #104f16; color: white;
+  border: none; padding: 12px 18px;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.14s; text-align: center;
+}
+.btn-regen:hover { background: #0d4013; }
+
+@media (max-width: 520px) {
+  canvas { width: 100%; height: auto; }
+  .img-row  { flex-direction: column; }
+  .week-nav { gap: 6px; }
+  .day-pill { font-size: 11px; padding: 8px 4px; }
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <img id="hdr-logo" src="https://raw.githubusercontent.com/bitcointrainingcamp/argonvision-inline-chatbot/main/ArgonVision-New-Logo3-transparent-logo-only.png" alt="ArgonVision">
+  <div>
+    <span id="hdr-title">ArgonVision</span>
+    <span id="hdr-sub">Attraction Post Generator</span>
+  </div>
+</div>
+
+<main>
+
+  <div class="intro">
+    <h2>Your week of attraction content</h2>
+    <p>Enter your topic and get five days of posts that spark conversation<br>
+    without selling a thing — written fresh by AI every time.</p>
+  </div>
+
+  <!-- ── PEXELS PHOTO KEY — always visible ── -->
+  <div class="card">
+    <div class="card-title">Photo Source — Pexels API</div>
+    <div id="api-connected">
+      <span class="api-badge">Photos connected</span>
+      <button class="link-btn" onclick="showApiInput()">Change key</button>
+    </div>
+    <div id="api-input-wrap">
+      <p>To automatically pull photos that match your topic, add a free <strong>Pexels API key</strong>.</p>
+      <p>Go to <a href="https://www.pexels.com/api/" target="_blank">pexels.com/api</a> and complete
+      the application form. Once submitted, your API key will be provided to you.</p>
+      <p>Paste it below and click Save — done once, remembered forever.</p>
+      <div class="api-row">
+        <input type="text" id="api-key-input" placeholder="Paste your Pexels API key here" autocomplete="off">
+        <button class="btn-save" onclick="saveApiKey()">Save Key</button>
+      </div>
+      <div id="api-error"></div>
+      <p style="margin-top:10px;font-size:11px;color:#bbb;">
+        No key? Posts are still generated — images will use a green gradient instead of a photo.
+        You can also upload your own photo below.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── PHOTO UPLOAD — always visible ── -->
+  <div class="card">
+    <div class="card-title">Upload Your Own Photo (Optional)</div>
+    <div class="field">
+      <small>Upload a photo to use on all five images instead of the Pexels auto-fetch. Useful if you have a specific image in mind.</small>
+    </div>
+    <div class="upload-zone" id="upload-zone" onclick="triggerUpload()">
+      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+      <div class="upload-placeholder" id="upload-placeholder">
+        <span>Click to upload a photo</span>
+        <small>JPEG, PNG or WEBP — any size</small>
+      </div>
+      <img id="upload-preview" alt="Selected photo">
+      <button class="upload-clear" onclick="clearPhoto(event)">Remove</button>
+    </div>
+  </div>
+
+  <!-- ── FORM ── -->
+  <div id="form-section">
+
+    <div class="card">
+      <div class="card-title">This Week's Content</div>
+
+      <div class="field">
+        <label>Topic</label>
+        <small>What insight or pain point do you want to post about this week?</small>
+        <input type="text" id="f-topic"
+          placeholder="e.g. struggling to pay the bills, email follow-up, building a list">
+      </div>
+
+      <div class="field">
+        <label>Your Audience</label>
+        <small>Who are you talking to?</small>
+        <input type="text" id="f-audience"
+          placeholder="e.g. online marketers, small business owners, coaches">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Platforms</div>
+      <div class="plat-row">
+        <label class="plat-label on" id="lbl-fb">
+          <input type="checkbox" id="chk-fb" checked>
+          <span class="plat-dot" style="background:#1877F2"></span> Facebook
+        </label>
+        <label class="plat-label on" id="lbl-ig">
+          <input type="checkbox" id="chk-ig" checked>
+          <span class="plat-dot" style="background:#E1306C"></span> Instagram
+        </label>
+        <label class="plat-label on" id="lbl-li">
+          <input type="checkbox" id="chk-li" checked>
+          <span class="plat-dot" style="background:#0A66C2"></span> LinkedIn
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-gen" id="btn-gen" onclick="generate()">Generate My Week →</button>
+
+    <!-- usage meter + rate limit block -->
+    <div id="usage-meter">
+      <span id="usage-pips"></span>
+      <span id="usage-label"></span>
+    </div>
+    <div id="rate-limit-block">
+      <div class="rl-icon">⏳</div>
+      <h3>Daily limit reached</h3>
+      <p id="rl-msg">You have used your 2 generations for today.<br>Come back in <strong id="rl-countdown"></strong> and you will be ready to go again.</p>
+    </div>
+
+  </div>
+
+  <!-- ── GENERATING SCREEN ── -->
+  <div id="gen-screen">
+    <div class="gen-spinner"></div>
+    <p class="gen-title">Writing your posts...</p>
+    <p class="gen-sub">Claude is crafting five days of attraction content<br>tailored to your topic. This takes around 10 seconds.</p>
+    <div id="gen-error">
+      <p id="gen-error-msg">Something went wrong. Please try again.</p>
+      <button class="btn-retry" onclick="retryGenerate()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div id="results">
+
+    <div class="card">
+      <div class="card-title">Your Week</div>
+      <div class="week-nav" id="week-nav"></div>
+    </div>
+
+    <div id="day-cards"></div>
+
+    <div class="result-footer">
+      <button class="btn-back"  onclick="goBack()">← Change Topic</button>
+      <button class="btn-regen" onclick="regenerate()">Regenerate Posts</button>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ── Pexels key ────────────────────────────────────────────
+const LS_PEXELS = 'as_pexels_key';
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) { alert('Please paste your Pexels API key first.'); return; }
+  localStorage.setItem(LS_PEXELS, val);
+  document.getElementById('api-error').style.display = 'none';
+  showConnected(true);
+}
+
+function showApiInput() { showConnected(false); }
+
+function showConnected(yes) {
+  document.getElementById('api-connected').style.display = yes ? 'flex' : 'none';
+  document.getElementById('api-input-wrap').style.display = yes ? 'none' : 'block';
+}
+
+(function initPexels() {
+  const saved = localStorage.getItem(LS_PEXELS);
+  if (saved) { document.getElementById('api-key-input').value = saved; showConnected(true); }
+})();
+
+// ── Photo upload ──────────────────────────────────────────
+let loadedPhoto = null;
+
+function triggerUpload() { document.getElementById('photo-input').click(); }
+
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      loadedPhoto = img;
+      document.getElementById('upload-preview').src = e.target.result;
+      document.getElementById('upload-preview').style.display = 'block';
+      document.getElementById('upload-zone').classList.add('loaded');
+      if (_generated) _posts.forEach((_, di) => drawCanvas(di));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPhoto(e) {
+  e.stopPropagation();
+  loadedPhoto = null;
+  document.getElementById('photo-input').value = '';
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('upload-preview').src = '';
+  document.getElementById('upload-zone').classList.remove('loaded');
+  if (_generated) _posts.forEach((_, di) => drawCanvas(di));
+}
+
+// ── Platform toggles ──────────────────────────────────────
+['fb','ig','li'].forEach(p => {
+  document.getElementById('chk-' + p).addEventListener('change', function() {
+    document.getElementById('lbl-' + p).classList.toggle('on', this.checked);
+  });
+});
+
+// ── Post formatting ───────────────────────────────────────
+const FB_TAGS  = '#onlinemarketing #digitalmarketing #businessgrowth #entrepreneur';
+const IG_TAGS  = '#onlinemarketing #digitalmarketing #businessgrowth #entrepreneur #workfromhome #makemoneyonline #onlinebusiness #marketingtips #entrepreneurlife #growyourbusiness #sidehustle #successmindset';
+const LI_TAGS  = '#OnlineMarketing #BusinessGrowth #DigitalMarketing';
+const PLAT_NAMES = { fb: 'Facebook', ig: 'Instagram', li: 'LinkedIn' };
+
+function formatPost(body, plat) {
+  return body + '\n\n' + { fb: FB_TAGS, ig: IG_TAGS, li: LI_TAGS }[plat];
+}
+
+// ── Pexels photo search ───────────────────────────────────
+const DAY_MOODS = [
+  'stressed worried anxious',
+  'thinking uncertain confused',
+  'frustrated overwhelmed struggling',
+  'confident determined successful',
+  'calm thoughtful relaxed'
+];
+
+const STOP_WORDS = new Set([
+  'a','an','the','and','or','but','for','in','on','at','to','of','is','are',
+  'was','were','be','been','have','has','had','do','does','did','will','would',
+  'could','should','may','might','must','can','it','its','this','that','these',
+  'those','i','we','you','he','she','they','my','our','your','his','her','their',
+  'how','what','when','where','why','who','which','about','with','from','by',
+  'not','so','if','as','up','into','out','over','after','just','very','really',
+  'some','any','all','one','two','want','need','try','get','make','too','also'
+]);
+
+function buildQuery(topic, di) {
+  const words = topic.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  return ('person ' + words.slice(0, 3).join(' ') + ' ' + DAY_MOODS[di]).trim();
+}
+
+let fetchedPhotos = {};
+let photoLoading  = {};
+
+async function loadPhotoForDay(di, query) {
+  photoLoading[di] = true;
+  drawCanvas(di);
+
+  const apiKey = localStorage.getItem(LS_PEXELS);
+  if (!apiKey) { photoLoading[di] = false; drawCanvas(di); return; }
+
+  try {
+    const page = Math.ceil(Math.random() * 5);
+    const resp = await fetch(
+      'https://api.pexels.com/v1/search?query=' + encodeURIComponent(query) + '&per_page=15&page=' + page,
+      { headers: { Authorization: apiKey } }
+    );
+    if (!resp.ok) throw new Error('Pexels ' + resp.status);
+    const data  = await resp.json();
+    if (!data.photos?.length) throw new Error('No results');
+
+    const url = data.photos[Math.floor(Math.random() * data.photos.length)].src.large2x;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    fetchedPhotos[di] = img;
+
+  } catch { /* gradient fallback — no alert */ }
+
+  photoLoading[di] = false;
+  drawCanvas(di);
+}
+
+async function refreshDayPhoto(di) {
+  if (loadedPhoto) { alert('Remove your uploaded photo first to use Pexels auto-fetch.'); return; }
+  if (!localStorage.getItem(LS_PEXELS)) { alert('Add a Pexels API key at the top of the page to fetch photos.'); return; }
+  fetchedPhotos[di] = null;
+  await loadPhotoForDay(di, buildQuery(_generated.topic, di));
+}
+
+// ── Rate limiting ─────────────────────────────────────────
+const LS_USAGE    = 'as_gen_usage';
+const DAILY_LIMIT = 2;
+const DAY_MS      = 24 * 60 * 60 * 1000;
+
+function getStamps() {
+  try { return JSON.parse(localStorage.getItem(LS_USAGE) || '[]'); }
+  catch { return []; }
+}
+
+function recentStamps() {
+  const now = Date.now();
+  return getStamps().filter(t => now - t < DAY_MS);
+}
+
+function recordGeneration() {
+  const updated = [...recentStamps(), Date.now()];
+  localStorage.setItem(LS_USAGE, JSON.stringify(updated));
+  updateUsageMeter();
+}
+
+function checkLimit() {
+  const recent = recentStamps();
+  if (recent.length >= DAILY_LIMIT) {
+    const oldest  = Math.min(...recent);
+    const resetMs = oldest + DAY_MS - Date.now();
+    const h = Math.floor(resetMs / 3600000);
+    const m = Math.ceil((resetMs % 3600000) / 60000);
+    return { blocked: true, h, m };
+  }
+  return { blocked: false, used: recent.length };
+}
+
+function updateUsageMeter() {
+  const used     = recentStamps().length;
+  const left     = DAILY_LIMIT - used;
+  const pipsEl   = document.getElementById('usage-pips');
+  const labelEl  = document.getElementById('usage-label');
+  const rlBlock  = document.getElementById('rate-limit-block');
+  const btnGen   = document.getElementById('btn-gen');
+
+  // Build pips: green when used; last filled pip turns amber if only 1 remaining
+  pipsEl.innerHTML = '';
+  for (let i = 0; i < DAILY_LIMIT; i++) {
+    const pip = document.createElement('span');
+    if (i < used) {
+      // amber on the most-recently-used pip when 1 use is left (warn)
+      pip.className = (left === 1 && i === used - 1) ? 'pip last' : 'pip used';
+    } else {
+      pip.className = 'pip';
+    }
+    pipsEl.appendChild(pip);
+  }
+
+  if (left === 0) {
+    const { h, m } = checkLimit();
+    labelEl.textContent = '';
+    document.getElementById('rl-countdown').textContent =
+      h > 0 ? h + 'h ' + m + 'm' : m + ' minute' + (m !== 1 ? 's' : '');
+    rlBlock.style.display = 'block';
+    btnGen.disabled = true;
+  } else {
+    labelEl.textContent = left + ' of ' + DAILY_LIMIT + ' generation' + (left !== 1 ? 's' : '') + ' remaining today';
+    rlBlock.style.display = 'none';
+    btnGen.disabled = false;
+  }
+}
+
+// Initialise meter on load
+(function() { updateUsageMeter(); })();
+
+// ── State ─────────────────────────────────────────────────
+let _generated = null;
+let _posts     = [];
+let _texts     = {};
+let _lastTopic, _lastAudience, _lastPlats;
+
+// ── Generate ──────────────────────────────────────────────
+async function generate() {
+  // Rate limit check
+  const lim = checkLimit();
+  if (lim.blocked) {
+    updateUsageMeter(); // make sure UI is current
+    return;
+  }
+
+  const topic    = document.getElementById('f-topic').value.trim();
+  const audience = document.getElementById('f-audience').value.trim();
+  if (!topic)    { alert('Please enter a topic.'); return; }
+  if (!audience) { alert('Please enter your audience.'); return; }
+
+  const selPlats = ['fb','ig','li'].filter(p => document.getElementById('chk-' + p).checked);
+  if (!selPlats.length) { alert('Please select at least one platform.'); return; }
+
+  _lastTopic    = topic;
+  _lastAudience = audience;
+  _lastPlats    = selPlats;
+
+  showScreen('generating');
+  document.getElementById('gen-error').style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/generate', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ topic, audience })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || 'HTTP ' + resp.status);
+    }
+
+    const data = await resp.json();
+    if (!data.posts?.length) throw new Error('No posts returned');
+
+    recordGeneration();
+    renderResults(data.posts, topic, audience, selPlats);
+
+  } catch (err) {
+    document.getElementById('gen-error-msg').textContent =
+      err.message || 'Something went wrong. Please try again.';
+    document.getElementById('gen-error').style.display = 'block';
+  }
+}
+
+function retryGenerate() {
+  document.getElementById('gen-error').style.display = 'none';
+  document.getElementById('f-topic').value    = _lastTopic    || '';
+  document.getElementById('f-audience').value = _lastAudience || '';
+  showScreen('form');
+  updateUsageMeter();
+}
+
+function regenerate() {
+  document.getElementById('f-topic').value    = _lastTopic    || '';
+  document.getElementById('f-audience').value = _lastAudience || '';
+  showScreen('form');
+  generate();
+}
+
+// ── Render results ────────────────────────────────────────
+function renderResults(posts, topic, audience, selPlats) {
+  _posts     = posts;
+  _texts     = {};
+  fetchedPhotos = {};
+  photoLoading  = {};
+  _generated = { topic, audience, selPlats };
+
+  const weekNav  = document.getElementById('week-nav');
+  const dayCards = document.getElementById('day-cards');
+  weekNav.innerHTML  = '';
+  dayCards.innerHTML = '';
+
+  posts.forEach((post, di) => {
+
+    // Day pill
+    const pill = document.createElement('div');
+    pill.className  = 'day-pill' + (di === 0 ? ' on' : '');
+    pill.dataset.day = di;
+    pill.innerHTML  = post.day + '<small>' + post.angle + '</small>';
+    pill.onclick    = () => switchDay(di);
+    weekNav.appendChild(pill);
+
+    // Card
+    const card = document.createElement('div');
+    card.className = 'card day-view' + (di === 0 ? ' on' : '');
+    card.id = 'day-' + di;
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'day-header';
+    hdr.innerHTML = '<span class="day-label">' + post.day + ' &mdash; ' + post.angle + '</span>';
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+
+    const newPhotoBtn = document.createElement('button');
+    newPhotoBtn.className   = 'btn-sec';
+    newPhotoBtn.textContent = 'New Photo';
+    (function(d) { newPhotoBtn.onclick = () => refreshDayPhoto(d); })(di);
+    btnRow.appendChild(newPhotoBtn);
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className   = 'btn-dl';
+    dlBtn.textContent = 'Download Image';
+    (function(d) { dlBtn.onclick = () => dlImage(d); })(di);
+    btnRow.appendChild(dlBtn);
+
+    hdr.appendChild(btnRow);
+    card.appendChild(hdr);
+
+    // Image row
+    const imgRow = document.createElement('div');
+    imgRow.className = 'img-row';
+    const cv = document.createElement('canvas');
+    cv.id = 'cv-' + di; cv.width = 1080; cv.height = 1080;
+    imgRow.appendChild(cv);
+
+    const imgMeta = document.createElement('div');
+    imgMeta.className = 'img-meta';
+    const query = buildQuery(topic, di);
+    imgMeta.innerHTML =
+      '<p>1080 &times; 1080 px &mdash; works on Facebook, Instagram and LinkedIn.</p>'
+      + '<span class="search-tag">Photo search: ' + query + '</span>';
+    imgRow.appendChild(imgMeta);
+    card.appendChild(imgRow);
+
+    // Platform tabs
+    const ptabs = document.createElement('div');
+    ptabs.className = 'ptabs';
+    selPlats.forEach((p, pi) => {
+      const tab = document.createElement('div');
+      tab.className    = 'ptab' + (pi === 0 ? ' on' : '');
+      tab.textContent  = PLAT_NAMES[p];
+      tab.dataset.plat = p; tab.dataset.day = di;
+      tab.onclick = () => switchPlat(di, p);
+      ptabs.appendChild(tab);
+    });
+    card.appendChild(ptabs);
+
+    // Copy panels
+    selPlats.forEach((p, pi) => {
+      const full = formatPost(post.body, p);
+      const key  = di + '_' + p;
+      _texts[key] = full;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'copy-wrap' + (pi === 0 ? ' on' : '');
+      wrap.id = 'copy-' + di + '-' + p;
+
+      const box = document.createElement('div');
+      box.className = 'copy-box';
+      const pre = document.createElement('pre');
+      pre.textContent = full;
+      const btn = document.createElement('button');
+      btn.className   = 'btn-copy'; btn.textContent = 'Copy';
+      btn.dataset.key = key;
+      btn.onclick     = function() { doCopy(this); };
+
+      box.appendChild(pre); box.appendChild(btn);
+      wrap.appendChild(box); card.appendChild(wrap);
+    });
+
+    dayCards.appendChild(card);
+
+    // Draw canvas immediately, then fetch Pexels photo
+    drawCanvas(di);
+    if (!loadedPhoto) loadPhotoForDay(di, query);
+  });
+
+  showScreen('results');
+}
+
+// ── Screen switcher ───────────────────────────────────────
+function showScreen(name) {
+  document.getElementById('form-section').style.display = name === 'form'       ? 'block' : 'none';
+  document.getElementById('gen-screen').style.display   = name === 'generating' ? 'block' : 'none';
+  document.getElementById('results').style.display      = name === 'results'    ? 'block' : 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchDay(di) {
+  document.querySelectorAll('.day-pill').forEach(p => p.classList.toggle('on', +p.dataset.day === di));
+  document.querySelectorAll('.day-view').forEach(v => v.classList.toggle('on', v.id === 'day-' + di));
+}
+
+function switchPlat(di, plat) {
+  const card = document.getElementById('day-' + di);
+  card.querySelectorAll('.ptab').forEach(t => t.classList.toggle('on', t.dataset.plat === plat));
+  card.querySelectorAll('.copy-wrap').forEach(w => w.classList.remove('on'));
+  const t = document.getElementById('copy-' + di + '-' + plat);
+  if (t) t.classList.add('on');
+}
+
+function goBack() { showScreen('form'); updateUsageMeter(); }
+
+// ── Canvas ────────────────────────────────────────────────
+function drawCanvas(di) {
+  const cv = document.getElementById('cv-' + di);
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  const W  = 1080, H = 1080;
+  cx.clearRect(0, 0, W, H);
+
+  const photo = loadedPhoto || fetchedPhotos[di];
+
+  if (photo) {
+    const s  = Math.max(W / photo.width, H / photo.height);
+    const sw = photo.width * s, sh = photo.height * s;
+    cx.drawImage(photo, (W - sw) / 2, (H - sh) / 2, sw, sh);
+  } else {
+    const grd = cx.createLinearGradient(0, 0, W, H);
+    grd.addColorStop(0, '#0b3a10');
+    grd.addColorStop(1, '#1a5c22');
+    cx.fillStyle = grd; cx.fillRect(0, 0, W, H);
+    cx.globalAlpha = 0.07;
+    cx.fillStyle = '#1fd230';
+    cx.beginPath(); cx.arc(920, 150, 360, 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = 1;
+    cx.fillStyle = '#1fd230'; cx.fillRect(80, 78, 70, 6);
+    if (photoLoading[di]) {
+      cx.fillStyle = 'rgba(255,255,255,0.4)';
+      cx.font = '26px Arial'; cx.textAlign = 'center';
+      cx.fillText('Loading photo...', W / 2, H / 2);
+      cx.textAlign = 'left';
+    }
+  }
+}
+
+// ── Download ──────────────────────────────────────────────
+function dlImage(di) {
+  drawCanvas(di);
+  setTimeout(() => {
+    try {
+      const a    = document.createElement('a');
+      a.download = (_posts[di]?.day || 'day').toLowerCase() + '-post.png';
+      a.href     = document.getElementById('cv-' + di).toDataURL('image/png');
+      a.click();
+    } catch {
+      alert('Could not download — upload your own photo above and try again.');
+    }
+  }, 60);
+}
+
+// ── Copy ─────────────────────────────────────────────────
+function doCopy(btn) {
+  navigator.clipboard.writeText(_texts[btn.dataset.key]).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
