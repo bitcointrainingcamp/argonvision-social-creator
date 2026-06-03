@@ -712,7 +712,7 @@ async function generate() {
   document.getElementById('gen-error').style.display = 'none';
 
   try {
-    const resp = await fetch('/api/generate', {
+    const resp = await fetch('/api/generate-gemini', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body   : JSON.stringify({ topic, audience })
