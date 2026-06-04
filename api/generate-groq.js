@@ -120,8 +120,12 @@ module.exports = async (req, res) => {
     const data    = await groqResp.json();
     const rawText = data.choices?.[0]?.message?.content || '';
     if (!rawText) throw new Error('Empty response from Groq');
-    const json  = extractJson(rawText);
-    const posts = JSON.parse(json);
+    const jsonStr = extractJson(rawText);
+    // Fix literal newlines inside JSON string values so JSON.parse succeeds
+    const sanitised = jsonStr.replace(/("body"\s*:\s*")([\s\S]*?)("(?:\s*[,}]))/g, (match, open, body, close) => {
+      return open + body.replace(/\n/g, '\\n').replace(/\r/g, '') + close;
+    });
+    const posts = JSON.parse(sanitised);
     if (!Array.isArray(posts.posts) || posts.posts.length !== 5) throw new Error('Unexpected post structure');
     return res.status(200).json(posts);
   } catch (err) {
