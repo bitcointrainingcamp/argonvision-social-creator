@@ -96,9 +96,10 @@ module.exports = async (req, res) => {
         model     : GROQ_MODEL,
         max_tokens: MAX_TOKENS,
         temperature: 0.85,
+        response_format: { type: 'json_object' },
         messages  : [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user',   content: 'Topic: ' + topic.trim() + '\nAudience: ' + audience.trim() }
+          { role: 'user',   content: 'Topic: ' + topic.trim() + '\nAudience: ' + audience.trim() + '\n\nIMPORTANT: Each post body MUST be 100-140 words. Each sentence on its own line separated by a blank line. Write in second person ("you"). Do not write short posts.' }
         ]
       })
     });
