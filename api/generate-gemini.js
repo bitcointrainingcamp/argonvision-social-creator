@@ -6,7 +6,7 @@
 //   Add:  GEMINI_API_KEY  =  your Google AI Studio API key
 //   Get your free key at: aistudio.google.com → Get API key
 
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash-8b';
 const MAX_TOKENS   = 1200;
 
 const SYSTEM_PROMPT = `You are a specialist in attraction marketing content for social media. Your posts create genuine interest and start real conversations — they never promote, sell, or pitch anything.
